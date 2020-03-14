@@ -139,7 +139,8 @@ function New-ICSession() {
       }
     }
     catch [System.Net.WebException] {
-      if ($_.Exception.Response.StatusCode -ne 'ServiceUnavailable') { Throw $_ }
+      #commenting out next line as it causes a failure loop if CIC isn't also an active Sessoin Manager
+      #if ($_.Exception.Response.StatusCode -ne 'ServiceUnavailable') { Throw $_ }
       if ([string]::IsNullOrEmpty($_.ErrorDetails)) { Throw $_ }
       try { $details = ConvertFrom-Json $_.ErrorDetails } catch { }
       if ($null -eq $details) { Throw $_ }
