@@ -3,9 +3,9 @@
 #>
 
 function Get-ICFeatureLicenses() {
-    # {{{2
-    # Documentation {{{3
-    <#
+  # {{{2
+  # Documentation {{{3
+  <#
 .SYNOPSIS
   Gets a list of all feature licenses
 .DESCRIPTION
@@ -13,18 +13,17 @@ function Get-ICFeatureLicenses() {
 .PARAMETER ICSession
   The Interaction Center Session
 #> # }}}3
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession
-    )
+  [CmdletBinding()]
+  Param(
+    [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession
+  )
 
-    $headers = @{
-        "Accept-Language"      = $ICSession.language;
-        "ININ-ICWS-CSRF-Token" = $ICSession.token;
-    }
+  $headers = @{
+    "Accept-Language"      = $ICSession.language;
+    "ININ-ICWS-CSRF-Token" = $ICSession.token;
+  }
 
-    $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/feature-licenses?select=*" -Method Get -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
-    Write-Output $response | Format-Table
-    [PSCustomObject] $response
+  $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/feature-licenses?select=*" -Method Get -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
+  return $response.items.configurationId;    
 } # }}}2
 
