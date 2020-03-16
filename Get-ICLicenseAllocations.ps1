@@ -3,8 +3,6 @@
 #>
 
 function Get-ICLicenseAllocations() {
-  # {{{2
-  # Documentation {{{3
   <#
 .SYNOPSIS
   Gets a list of all additional licenses
@@ -12,7 +10,7 @@ function Get-ICLicenseAllocations() {
   Gets a list of all additional licenses, as shown in the User "Licensing" tab
 .PARAMETER ICSession
   The Interaction Center Session
-#> # }}}3
+#>
   [CmdletBinding()]
   Param(
     [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession
@@ -24,7 +22,7 @@ function Get-ICLicenseAllocations() {
   }
 
   $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/license-allocations?select=*" -Method Get -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
-  Write-Output $response | Format-Table
-  [PSCustomObject] $response
-} # }}}2
+
+  return $response.items
+}
 
