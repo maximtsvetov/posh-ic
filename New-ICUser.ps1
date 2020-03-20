@@ -1,11 +1,11 @@
-﻿<#
+﻿#TODO: Need to gracefully map mailbox user info so it shows first/lastnames in vairous ICBM reports
+
+<#
 # AUTHOR : Pierrick Lozach, extended by Paul McGurn
 #>
 
-function New-ICUser() # {{{2
-{
-# Documentation {{{3
-<#
+function New-ICUser() {
+  <#
 .SYNOPSIS
   Creates a new IC user
 .DESCRIPTION
@@ -46,27 +46,28 @@ function New-ICUser() # {{{2
   Set to '*' to assign all access rights. Default sets no rights.
 .PARAMETER AdministrativeRights
   Set to '*' to assign all administrative rights. Default sets no rights.
-#> # }}}3
+#>
   [CmdletBinding()]
   Param(
-    [Parameter(Mandatory=$true)] [Alias("Session", "Id")] [ININ.ICSession] $ICSession,
-    [Parameter(Mandatory=$true)] [Alias("User")] [string] $ICUser,
-    [Parameter(Mandatory=$false)] [string] $Password,
-    [Parameter(Mandatory=$false)] [string] $Extension,
-    [Parameter(Mandatory=$false)] [Alias("ClientAccess")] [boolean] $HasClientAccess,
-    [Parameter(Mandatory=$false)] [Alias("EnableLicenses", "ActivateLicenses")] [boolean] $LicenseActive,
-    [Parameter(Mandatory=$false)] [Alias("MediaLicense")] [int] $MediaLevel,
-    [Parameter(Mandatory=$false)] [int]$allocationType,
-    [Parameter(Mandatory=$false)] [String]$location,
-    [Parameter(Mandatory=$false)] [string[]] $AdditionalLicenses,
-    [Parameter(Mandatory=$false)] [Alias("DomainUser")] [string] $NTDomainUser,
-    [Parameter(Mandatory=$false)] [Alias("Language")] [string] $PreferredLanguage,
-    [Parameter(Mandatory=$false)] [string[]] $Roles,
-    [Parameter(Mandatory=$false)] [string[]] $Workgroups,
-    [Parameter(Mandatory=$false)] [string] $outboundAni,
-    [Parameter(Mandatory=$false)] [string] $SecurityRights,
-    [Parameter(Mandatory=$false)] [string] $AccessRights,
-    [Parameter(Mandatory=$false)] [string] $AdministrativeRights
+    [Parameter(Mandatory = $true)] [Alias("Session", "Id")] $ICSession,
+    [Parameter(Mandatory = $true)] [Alias("User")] [string] $ICUser,
+    [Parameter(Mandatory = $false)] [string] $Password,
+    [Parameter(Mandatory = $false)] [string] $Extension,
+    [Parameter(Mandatory = $false)] [Alias("ClientAccess")] [boolean] $HasClientAccess,
+    [Parameter(Mandatory = $false)] [Alias("EnableLicenses", "ActivateLicenses")] [boolean] $LicenseActive,
+    [Parameter(Mandatory = $false)] [Alias("MediaLicense")] [int] $MediaLevel,
+    [Parameter(Mandatory = $false)] [int]$allocationType,
+    [Parameter(Mandatory = $false)] [String]$location,
+    [Parameter(Mandatory = $false)] [string[]] $AdditionalLicenses,
+    [Parameter(Mandatory = $false)] [Alias("DomainUser")] [string] $NTDomainUser,
+    [Parameter(Mandatory = $false)] [Alias("Language")] [string] $PreferredLanguage,
+    [Parameter(Mandatory = $false)] [string[]] $Roles,
+    [Parameter(Mandatory = $false)] [string[]] $Workgroups,
+    [Parameter(Mandatory = $false)] [string] $outboundAni,
+    [Parameter(Mandatory = $false)] [string] $SecurityRights,
+    [Parameter(Mandatory = $false)] [string] $AccessRights,
+    [Parameter(Mandatory = $false)] [string] $AdministrativeRights,
+    [Parameter(Mandatory = $false)] [string] $EmailAddress
   )
 
   $userExists = Get-ICUser $ICSession -ICUser $ICUser
@@ -75,27 +76,22 @@ function New-ICUser() # {{{2
   }
 
   # Validate Parameters
-  if (!$PSBoundParameters.ContainsKey('Password'))
-  {
-    $Password = '1234'
+  if (!$PSBoundParameters.ContainsKey('Password')) {
+    $Password = '11223344'
   }
 
-  if (!$PSBoundParameters.ContainsKey('HasClientAccess'))
-  {
+  if (!$PSBoundParameters.ContainsKey('HasClientAccess')) {
     $HasClientAccess = $true
   }
 
-  if (!$PSBoundParameters.ContainsKey('LicenseActive'))
-  {
+  if (!$PSBoundParameters.ContainsKey('LicenseActive')) {
     $LicenseActive = $true
   }
 
-  if (!$PSBoundParameters.ContainsKey('MediaLevel'))
-  {
+  if (!$PSBoundParameters.ContainsKey('MediaLevel')) {
     $MediaLevel = 3
   }
-  if (!$PSBoundParameters.ContainsKey('AllocationType'))
-  {
+  if (!$PSBoundParameters.ContainsKey('AllocationType')) {
     $allocationType = 0
   }
 
@@ -107,8 +103,8 @@ function New-ICUser() # {{{2
 
   # Build base body
   $body = @{
-   "configurationId" = New-ICConfigurationId $ICUser
-   "extension" = $Extension
+    "configurationId" = New-ICConfigurationId $ICUser
+    "extension"       = $Extension
   }
 
   ############
@@ -116,9 +112,9 @@ function New-ICUser() # {{{2
   ############
   $licenseProperties = @{
     "hasClientAccess" = $HasClientAccess
-    "licenseActive" = $LicenseActive
-    "mediaLevel" = $MediaLevel
-    "allocationType" = $allocationType
+    "licenseActive"   = $LicenseActive
+    "mediaLevel"      = $MediaLevel
+    "allocationType"  = $allocationType
   }
 
   # Add Additional Licenses if there are any
@@ -142,7 +138,7 @@ function New-ICUser() # {{{2
 
   if (![string]::IsNullOrEmpty($licenseProperties)) {
     $body += @{
-     "licenseProperties" = $licenseProperties
+      "licenseProperties" = $licenseProperties
     }
   }
 
@@ -152,6 +148,17 @@ function New-ICUser() # {{{2
   if (![string]::IsNullOrEmpty($NTDomainUser)) {
     $body += @{
       "ntDomainUser" = $NTDomainUser
+    }
+  }
+  
+  ##################
+  # Mailbox #
+  ##################
+  if (![string]::IsNullOrEmpty($EmailAddress)) {
+    $body += @{
+      "mailboxProperties" = @{
+        "emailAddress" = $EmailAddress
+      }
     }
   }
 
@@ -202,8 +209,8 @@ function New-ICUser() # {{{2
       "roles" = @{
         "actualValue" = 
         @(
-          foreach($role in $roles){
-            @{"id" = $role}
+          foreach ($role in $roles) {
+            @{"id" = $role }
           }
         )        
       }
@@ -217,10 +224,10 @@ function New-ICUser() # {{{2
 
     $body += @{
       "workgroups" = @(
-          foreach($workgroup in $workgroups){
-            @{"id" = $workgroup}
-          }
-        )        
+        foreach ($workgroup in $workgroups) {
+          @{"id" = $workgroup }
+        }
+      )        
       
     }
   }
@@ -231,421 +238,421 @@ function New-ICUser() # {{{2
   if (![string]::IsNullOrEmpty($SecurityRights)) {
     $body += @{
       "securityRights" = @{
-        "accessAllInteractionConferences" = @{
+        "accessAllInteractionConferences"                   = @{
           "actualValue" = $true
         }
-        "accessOwnedInteractionConferences" = @{
+        "accessOwnedInteractionConferences"                 = @{
           "actualValue" = $true
         }
-        "accountCodeVerification" = @{
+        "accountCodeVerification"                           = @{
           "actualValue" = $true
         }
-        "addIndividuals" = @{
+        "addIndividuals"                                    = @{
           "actualValue" = $true
         }
-        "addOrganizations" = @{
+        "addOrganizations"                                  = @{
           "actualValue" = $true
         }
-        "agentPreferences" = @{
+        "agentPreferences"                                  = @{
           "actualValue" = $true
         }
-        "allowAccessToProblemReporter" = @{
+        "allowAccessToProblemReporter"                      = @{
           "actualValue" = $true
         }
-        "allowAgentRules" = @{
+        "allowAgentRules"                                   = @{
           "actualValue" = $true
         }
-        "allowAgentScheduleBidding" = @{
+        "allowAgentScheduleBidding"                         = @{
           "actualValue" = $true
         }
-        "allowAgentSeeOwnRank" = @{
+        "allowAgentSeeOwnRank"                              = @{
           "actualValue" = $true
         }
-        "allowAgentSeeRelativeRank" = @{
+        "allowAgentSeeRelativeRank"                         = @{
           "actualValue" = $true
         }
-        "allowAlertProgramming" = @{
+        "allowAlertProgramming"                             = @{
           "actualValue" = $true
         }
-        "allowEmailAccessViaTui" = @{
+        "allowEmailAccessViaTui"                            = @{
           "actualValue" = $true
         }
-        "allowEmailAlerts" = @{
+        "allowEmailAlerts"                                  = @{
           "actualValue" = $true
         }
-        "allowFaxAccessViaTui" = @{
+        "allowFaxAccessViaTui"                              = @{
           "actualValue" = $true
         }
-        "allowHandlerAlerts" = @{
+        "allowHandlerAlerts"                                = @{
           "actualValue" = $true
         }
-        "allowIntercomChat" = @{
+        "allowIntercomChat"                                 = @{
           "actualValue" = $true
         }
-        "allowMemoAlerts" = @{
+        "allowMemoAlerts"                                   = @{
           "actualValue" = $true
         }
-        "allowMiniMode" = @{
+        "allowMiniMode"                                     = @{
           "actualValue" = $true
         }
-        "allowMonitorColumns" = @{
+        "allowMonitorColumns"                               = @{
           "actualValue" = $true
         }
-        "allowMultipleCalls" = @{
+        "allowMultipleCalls"                                = @{
           "actualValue" = $true
         }
-        "allowPersistentConnections" = @{
+        "allowPersistentConnections"                        = @{
           "actualValue" = $true
         }
-        "allowReceiveVoicemail" = @{
+        "allowReceiveVoicemail"                             = @{
           "actualValue" = $true
         }
-        "allowRelatedInteractionsPage" = @{
+        "allowRelatedInteractionsPage"                      = @{
           "actualValue" = $true
         }
-        "allowResponseManagement" = @{
+        "allowResponseManagement"                           = @{
           "actualValue" = $true
         }
-        "allowSpeedDials" = @{
+        "allowSpeedDials"                                   = @{
           "actualValue" = $true
         }
-        "allowStatusNotes" = @{
+        "allowStatusNotes"                                  = @{
           "actualValue" = $true
         }
-        "allowUserDefinedTelephoneNumberOnRemoteLogin" = @{
+        "allowUserDefinedTelephoneNumberOnRemoteLogin"      = @{
           "actualValue" = $true
         }
-        "allowVideo" = @{
+        "allowVideo"                                        = @{
           "actualValue" = $true
         }
-        "allowVoiceMaiAccessViaTui" = @{
+        "allowVoiceMaiAccessViaTui"                         = @{
           "actualValue" = $true
         }
-        "allowWorkgroupStats" = @{
+        "allowWorkgroupStats"                               = @{
           "actualValue" = $true
         }
-        "canAccessOptimizerShiftTrading" = @{
+        "canAccessOptimizerShiftTrading"                    = @{
           "actualValue" = $true
         }
-        "canCoachInteractions" = @{
+        "canCoachInteractions"                              = @{
           "actualValue" = $true
         }
-        "canConferenceCalls" = @{
+        "canConferenceCalls"                                = @{
           "actualValue" = $true
         }
-        "canCreateEmailAttendantProfile" = @{
+        "canCreateEmailAttendantProfile"                    = @{
           "actualValue" = $true
         }
-        "canCreateInboundAttendantProfile" = @{
+        "canCreateInboundAttendantProfile"                  = @{
           "actualValue" = $true
         }
-        "canCreateOperatorAttendantProfile" = @{
+        "canCreateOperatorAttendantProfile"                 = @{
           "actualValue" = $true
         }
-        "canCreateOptimizerActivityCodes" = @{
+        "canCreateOptimizerActivityCodes"                   = @{
           "actualValue" = $true
         }
-        "canCreateOptimizerDayClassifications" = @{
+        "canCreateOptimizerDayClassifications"              = @{
           "actualValue" = $true
         }
-        "canCreateOutboundAttendantProfile" = @{
+        "canCreateOutboundAttendantProfile"                 = @{
           "actualValue" = $true
         }
-        "canCreateQuestionnaireDirectories" = @{
+        "canCreateQuestionnaireDirectories"                 = @{
           "actualValue" = $true
         }
-        "canCreateSchedulingUnits" = @{
+        "canCreateSchedulingUnits"                          = @{
           "actualValue" = $true
         }
-        "canDeleteOptimizerActivityCodes" = @{
+        "canDeleteOptimizerActivityCodes"                   = @{
           "actualValue" = $true
         }
-        "canDeleteOptimizerDayClassifications" = @{
+        "canDeleteOptimizerDayClassifications"              = @{
           "actualValue" = $true
         }
-        "canDeleteSchedulingUnits" = @{
+        "canDeleteSchedulingUnits"                          = @{
           "actualValue" = $true
         }
-        "canDisconnectInteractions" = @{
+        "canDisconnectInteractions"                         = @{
           "actualValue" = $true
         }
-        "canInitiateSecureInput" = @{
+        "canInitiateSecureInput"                            = @{
           "actualValue" = $true
         }
-        "canJoinInteractions" = @{
+        "canJoinInteractions"                               = @{
           "actualValue" = $true
         }
-        "canListenInOnInteractions" = @{
+        "canListenInOnInteractions"                         = @{
           "actualValue" = $true
         }
-        "canManageClientTemplates" = @{
+        "canManageClientTemplates"                          = @{
           "actualValue" = $true
         }
-        "canModifyOptimizerActivityCodes" = @{
+        "canModifyOptimizerActivityCodes"                   = @{
           "actualValue" = $true
         }
-        "canModifyOptimizerDayClassifications" = @{
+        "canModifyOptimizerDayClassifications"              = @{
           "actualValue" = $true
         }
-        "canModifyOptimizerStatusActivityTypeMapping" = @{
+        "canModifyOptimizerStatusActivityTypeMapping"       = @{
           "actualValue" = $true
         }
-        "canMuteInteractions" = @{
+        "canMuteInteractions"                               = @{
           "actualValue" = $true
         }
-        "canOrbitQueue" = @{
+        "canOrbitQueue"                                     = @{
           "actualValue" = $true
         }
-        "canOverrideFinishedScorecards" = @{
+        "canOverrideFinishedScorecards"                     = @{
           "actualValue" = $true
         }
-        "canParkInteractions" = @{
+        "canParkInteractions"                               = @{
           "actualValue" = $true
         }
-        "canPauseInteractions" = @{
+        "canPauseInteractions"                              = @{
           "actualValue" = $true
         }
-        "canPickupInteractions" = @{
+        "canPickupInteractions"                             = @{
           "actualValue" = $true
         }
-        "canPublishProcess" = @{
+        "canPublishProcess"                                 = @{
           "actualValue" = $true
         }
-        "canPutInteractionsOnHold" = @{
+        "canPutInteractionsOnHold"                          = @{
           "actualValue" = $true
         }
-        "canRecordInteractions" = @{
+        "canRecordInteractions"                             = @{
           "actualValue" = $true
         }
-        "canRequestAssistanceFromSupervisor" = @{
+        "canRequestAssistanceFromSupervisor"                = @{
           "actualValue" = $true
         }
-        "canSecureRecordingPauseInteractions" = @{
+        "canSecureRecordingPauseInteractions"               = @{
           "actualValue" = $true
         }
-        "canSubmitTimeOff" = @{
+        "canSubmitTimeOff"                                  = @{
           "actualValue" = $true
         }
-        "canTransferInteractions" = @{
+        "canTransferInteractions"                           = @{
           "actualValue" = $true
         }
-        "canTransferInteractionsToVoicemail" = @{
+        "canTransferInteractionsToVoicemail"                = @{
           "actualValue" = $true
         }
-        "canUserInteractionRecorderSelector" = @{
+        "canUserInteractionRecorderSelector"                = @{
           "actualValue" = $true
         }
-        "canViewOptimizerActivityCodes" = @{
+        "canViewOptimizerActivityCodes"                     = @{
           "actualValue" = $true
         }
-        "canViewOptimizerDayClassifications" = @{
+        "canViewOptimizerDayClassifications"                = @{
           "actualValue" = $true
         }
-        "canViewOptimizerStatusActivityTypeMapping" = @{
+        "canViewOptimizerStatusActivityTypeMapping"         = @{
           "actualValue" = $true
         }
-        "customizeClient" = @{
+        "customizeClient"                                   = @{
           "actualValue" = $true
         }
-        "debugHandlers" = @{
+        "debugHandlers"                                     = @{
           "actualValue" = $true
         }
-        "deleteIndividuals" = @{
+        "deleteIndividuals"                                 = @{
           "actualValue" = $true
         }
-        "deleteOrganizations" = @{
+        "deleteOrganizations"                               = @{
           "actualValue" = $true
         }
-        "directoryAdmin" = @{
+        "directoryAdmin"                                    = @{
           "actualValue" = $true
         }
-        "followMe" = @{
+        "followMe"                                          = @{
           "actualValue" = $true
         }
-        "havePrivateContacts" = @{
+        "havePrivateContacts"                               = @{
           "actualValue" = $true
         }
         "interactionRecorderMasterKeyPasswordAdministrator" = @{
           "actualValue" = $true
         }
-        "iPPhoneProvisioningAdmin" = @{
+        "iPPhoneProvisioningAdmin"                          = @{
           "actualValue" = $true
         }
-        "lockPolicySets" = @{
+        "lockPolicySets"                                    = @{
           "actualValue" = $true
         }
-        "loginCampaign" = @{
+        "loginCampaign"                                     = @{
           "actualValue" = $true
         }
-        "manageHandlers" = @{
+        "manageHandlers"                                    = @{
           "actualValue" = $true
         }
-        "mobileOfficeUser" = @{
+        "mobileOfficeUser"                                  = @{
           "actualValue" = $true
         }
-        "modifyConfigurationChangeAuditing" = @{
+        "modifyConfigurationChangeAuditing"                 = @{
           "actualValue" = $true
         }
-        "modifyConfigurationGeneral" = @{
+        "modifyConfigurationGeneral"                        = @{
           "actualValue" = $true
         }
-        "modifyConfigurationHTTPServer" = @{
+        "modifyConfigurationHTTPServer"                     = @{
           "actualValue" = $true
         }
-        "modifyConfigurationOutboundServers" = @{
+        "modifyConfigurationOutboundServers"                = @{
           "actualValue" = $true
         }
-        "modifyConfigurationPhoneNumberTypes" = @{
+        "modifyConfigurationPhoneNumberTypes"               = @{
           "actualValue" = $true
         }
-        "modifyConfigurationPreviewCallBehavior" = @{
+        "modifyConfigurationPreviewCallBehavior"            = @{
           "actualValue" = $true
         }
-        "modifyIndividuals" = @{
+        "modifyIndividuals"                                 = @{
           "actualValue" = $true
         }
-        "modifyInteractions" = @{
+        "modifyInteractions"                                = @{
           "actualValue" = $true
         }
-        "modifyOrganizations" = @{
+        "modifyOrganizations"                               = @{
           "actualValue" = $true
         }
-        "outlookTuiUser" = @{
+        "outlookTuiUser"                                    = @{
           "actualValue" = $true
         }
-        "privateCalls" = @{
+        "privateCalls"                                      = @{
           "actualValue" = $true
         }
-        "publishHandlers" = @{
+        "publishHandlers"                                   = @{
           "actualValue" = $true
         }
-        "remoteControl" = @{
+        "remoteControl"                                     = @{
           "actualValue" = $true
         }
-        "reporterAdministrator" = @{
+        "reporterAdministrator"                             = @{
           "actualValue" = $true
         }
-        "requireForcedAuthorizationCode" = @{
+        "requireForcedAuthorizationCode"                    = @{
           "actualValue" = $true
         }
-        "runContactListPredefinedActions" = @{
+        "runContactListPredefinedActions"                   = @{
           "actualValue" = $true
         }
-        "showAssistanceButton" = @{
+        "showAssistanceButton"                              = @{
           "actualValue" = $true
         }
-        "showCoachButton" = @{
+        "showCoachButton"                                   = @{
           "actualValue" = $true
         }
-        "showDisconnectButton" = @{
+        "showDisconnectButton"                              = @{
           "actualValue" = $true
         }
-        "showHoldButton" = @{
+        "showHoldButton"                                    = @{
           "actualValue" = $true
         }
-        "showJoinButton" = @{
+        "showJoinButton"                                    = @{
           "actualValue" = $true
         }
-        "showListenButton" = @{
+        "showListenButton"                                  = @{
           "actualValue" = $true
         }
-        "showMuteButton" = @{
+        "showMuteButton"                                    = @{
           "actualValue" = $true
         }
-        "showParkButton" = @{
+        "showParkButton"                                    = @{
           "actualValue" = $true
         }
-        "showPauseButton" = @{
+        "showPauseButton"                                   = @{
           "actualValue" = $true
         }
-        "showPickupButton" = @{
+        "showPickupButton"                                  = @{
           "actualValue" = $true
         }
-        "showPrivateButton" = @{
+        "showPrivateButton"                                 = @{
           "actualValue" = $true
         }
-        "showRecordButton" = @{
+        "showRecordButton"                                  = @{
           "actualValue" = $true
         }
-        "showSecureInputButton" = @{
+        "showSecureInputButton"                             = @{
           "actualValue" = $true
         }
-        "showSecureRecordingPauseButton" = @{
+        "showSecureRecordingPauseButton"                    = @{
           "actualValue" = $true
         }
-        "showTransferButton" = @{
+        "showTransferButton"                                = @{
           "actualValue" = $true
         }
-        "showVoicemailButton" = @{
+        "showVoicemailButton"                               = @{
           "actualValue" = $true
         }
-        "showWorkgroupsProfilesTab" = @{
+        "showWorkgroupsProfilesTab"                         = @{
           "actualValue" = $true
         }
-        "traceConfiguration" = @{
+        "traceConfiguration"                                = @{
           "actualValue" = $true
         }
-        "trackerAdministrator" = @{
+        "trackerAdministrator"                              = @{
           "actualValue" = $true
         }
-        "useTiffForFaxes" = @{
+        "useTiffForFaxes"                                   = @{
           "actualValue" = $true
         }
-        "viewConfigurationChangeAuditing" = @{
+        "viewConfigurationChangeAuditing"                   = @{
           "actualValue" = $true
         }
-        "viewConfigurationGeneral" = @{
+        "viewConfigurationGeneral"                          = @{
           "actualValue" = $true
         }
-        "viewConfigurationHTTPServer" = @{
+        "viewConfigurationHTTPServer"                       = @{
           "actualValue" = $true
         }
-        "viewConfigurationOutboundServers" = @{
+        "viewConfigurationOutboundServers"                  = @{
           "actualValue" = $true
         }
-        "viewConfigurationPhoneNumberTypes" = @{
+        "viewConfigurationPhoneNumberTypes"                 = @{
           "actualValue" = $true
         }
-        "viewConfigurationPreviewCallBehavior" = @{
+        "viewConfigurationPreviewCallBehavior"              = @{
           "actualValue" = $true
         }
-        "viewInteractionDetails" = @{
+        "viewInteractionDetails"                            = @{
           "actualValue" = $true
         }
-        "viewModifyCampaignAgentlessCallingType" = @{
+        "viewModifyCampaignAgentlessCallingType"            = @{
           "actualValue" = $true
         }
-        "viewModifyCampaignAutomaticTimeZoneMapping" = @{
+        "viewModifyCampaignAutomaticTimeZoneMapping"        = @{
           "actualValue" = $true
         }
-        "viewModifyCampaignLineSettings" = @{
+        "viewModifyCampaignLineSettings"                    = @{
           "actualValue" = $true
         }
-        "viewModifyCampaignMaxLines" = @{
+        "viewModifyCampaignMaxLines"                        = @{
           "actualValue" = $true
         }
-        "viewModifyCampaignStatus" = @{
+        "viewModifyCampaignStatus"                          = @{
           "actualValue" = $true
         }
-        "viewModifyContactListDataQuery" = @{
+        "viewModifyContactListDataQuery"                    = @{
           "actualValue" = $true
         }
-        "viewModifyCustomHandlerActions" = @{
+        "viewModifyCustomHandlerActions"                    = @{
           "actualValue" = $true
         }
-        "viewModifyDatabaseConnections" = @{
+        "viewModifyDatabaseConnections"                     = @{
           "actualValue" = $true
         }
-        "viewModifyDncSources" = @{
+        "viewModifyDncSources"                              = @{
           "actualValue" = $true
         }
-        "viewModifyEventLog" = @{
+        "viewModifyEventLog"                                = @{
           "actualValue" = $true
         }
-        "viewModifyTimeZoneMapData" = @{
+        "viewModifyTimeZoneMapData"                         = @{
           "actualValue" = $true
         }
-        "viewOtherPeoplesPrivateInteractions" = @{
+        "viewOtherPeoplesPrivateInteractions"               = @{
           "actualValue" = $true
         }
       }
@@ -657,401 +664,401 @@ function New-ICUser() # {{{2
   #################
   if (![string]::IsNullOrEmpty($AccessRights)) {
     $actualValue = @{
-      "grouping" = "0"
+      "grouping"   = "0"
       "objectType" = "0"
     }
     $actualValueList = @($actualValue) # This needs to be a list
 
     $body += @{
       "accessRights" = @{
-        "activateOthers" = @{
+        "activateOthers"                            = @{
           "actualValue" = $actualValueList
         }
-        "activateSelf" = @{
+        "activateSelf"                              = @{
           "actualValue" = $actualValueList
         }
-        "canEditAccessRights" = @{
+        "canEditAccessRights"                       = @{
           "actualValue" = $true
         }
-        "changeUserStatus" = @{
+        "changeUserStatus"                          = @{
           "actualValue" = $actualValueList
         }
-        "clientButtons" = @{
+        "clientButtons"                             = @{
           "actualValue" = $actualValueList
         }
-        "coachLineQueue" = @{
+        "coachLineQueue"                            = @{
           "actualValue" = $actualValueList
         }
-        "coachStationQueue" = @{
+        "coachStationQueue"                         = @{
           "actualValue" = $actualValueList
         }
-        "coachUserQueue" = @{
+        "coachUserQueue"                            = @{
           "actualValue" = $actualValueList
         }
-        "coachWorkgroupQueue" = @{
+        "coachWorkgroupQueue"                       = @{
           "actualValue" = $actualValueList
         }
-        "createOptimizerForecasts" = @{
+        "createOptimizerForecasts"                  = @{
           "actualValue" = $actualValueList
         }
-        "createSchedulingUnitAgentConstraints" = @{
+        "createSchedulingUnitAgentConstraints"      = @{
           "actualValue" = $actualValueList
         }
-        "createSchedulingUnitAgentGroups" = @{
+        "createSchedulingUnitAgentGroups"           = @{
           "actualValue" = $actualValueList
         }
-        "createSchedulingUnitSchedules" = @{
+        "createSchedulingUnitSchedules"             = @{
           "actualValue" = $actualValueList
         }
-        "createSchedulingUnitShiftRotations" = @{
+        "createSchedulingUnitShiftRotations"        = @{
           "actualValue" = $actualValueList
         }
-        "createSchedulingUnitShifts" = @{
+        "createSchedulingUnitShifts"                = @{
           "actualValue" = $actualValueList
         }
-        "createSchedulingUnitTimeoffRequests" = @{
+        "createSchedulingUnitTimeoffRequests"       = @{
           "actualValue" = $actualValueList
         }
-        "deleteOptimizerForecasts" = @{
+        "deleteOptimizerForecasts"                  = @{
           "actualValue" = $actualValueList
         }
-        "deleteSchedulingUnitAgentConstraints" = @{
+        "deleteSchedulingUnitAgentConstraints"      = @{
           "actualValue" = $actualValueList
         }
-        "deleteSchedulingUnitAgentGroups" = @{
+        "deleteSchedulingUnitAgentGroups"           = @{
           "actualValue" = $actualValueList
         }
-        "deleteSchedulingUnitSchedules" = @{
+        "deleteSchedulingUnitSchedules"             = @{
           "actualValue" = $actualValueList
         }
-        "deleteSchedulingUnitShiftRotations" = @{
+        "deleteSchedulingUnitShiftRotations"        = @{
           "actualValue" = $actualValueList
         }
-        "deleteSchedulingUnitShifts" = @{
+        "deleteSchedulingUnitShifts"                = @{
           "actualValue" = $actualValueList
         }
-        "deleteSchedulingUnitTimeoffRequests" = @{
+        "deleteSchedulingUnitTimeoffRequests"       = @{
           "actualValue" = $actualValueList
         }
-        "disconnectLineQueue" = @{
+        "disconnectLineQueue"                       = @{
           "actualValue" = $actualValueList
         }
-        "disconnectStationQueue" = @{
+        "disconnectStationQueue"                    = @{
           "actualValue" = $actualValueList
         }
-        "disconnectUserQueue" = @{
+        "disconnectUserQueue"                       = @{
           "actualValue" = $actualValueList
         }
-        "disconnectWorkgroupQueue" = @{
+        "disconnectWorkgroupQueue"                  = @{
           "actualValue" = $actualValueList
         }
-        "eFaqs" = @{
+        "eFaqs"                                     = @{
           "actualValue" = $actualValueList
         }
-        "followMePhoneNumberClassifications" = @{
+        "followMePhoneNumberClassifications"        = @{
           "actualValue" = $actualValueList
         }
-        "forwardPhoneNumberClassifications" = @{
+        "forwardPhoneNumberClassifications"         = @{
           "actualValue" = $actualValueList
         }
-        "holdStationQueue" = @{
+        "holdStationQueue"                          = @{
           "actualValue" = $actualValueList
         }
-        "holdUserQueue" = @{
+        "holdUserQueue"                             = @{
           "actualValue" = $actualValueList
         }
-        "interactionClientPlugins" = @{
+        "interactionClientPlugins"                  = @{
           "actualValue" = $actualValueList
         }
-        "interactionConferenceRestrictRooms" = @{
+        "interactionConferenceRestrictRooms"        = @{
           "actualValue" = $actualValueList
         }
-        "joinLineQueue" = @{
+        "joinLineQueue"                             = @{
           "actualValue" = $actualValueList
         }
-        "joinStationQueue" = @{
+        "joinStationQueue"                          = @{
           "actualValue" = $actualValueList
         }
-        "joinUserQueue" = @{
+        "joinUserQueue"                             = @{
           "actualValue" = $actualValueList
         }
-        "joinWorkgroupQueue" = @{
+        "joinWorkgroupQueue"                        = @{
           "actualValue" = $actualValueList
         }
-        "launchableProcessList" = @{
+        "launchableProcessList"                     = @{
           "actualValue" = $actualValueList
         }
-        "listAccountCodes" = @{
+        "listAccountCodes"                          = @{
           "actualValue" = $actualValueList
         }
-        "listenLineQueue" = @{
+        "listenLineQueue"                           = @{
           "actualValue" = $actualValueList
         }
-        "listenStationQueue" = @{
+        "listenStationQueue"                        = @{
           "actualValue" = $actualValueList
         }
-        "listenUserQueue" = @{
+        "listenUserQueue"                           = @{
           "actualValue" = $actualValueList
         }
-        "listenWorkgroupQueue" = @{
+        "listenWorkgroupQueue"                      = @{
           "actualValue" = $actualValueList
         }
-        "loginStation" = @{
+        "loginStation"                              = @{
           "actualValue" = $actualValueList
         }
-        "manageProcessList" = @{
+        "manageProcessList"                         = @{
           "actualValue" = $actualValueList
         }
-        "miscellaneous" = @{
+        "miscellaneous"                             = @{
           "actualValue" = $actualValueList
         }
-        "modifyAttendantEmailProfiles" = @{
+        "modifyAttendantEmailProfiles"              = @{
           "actualValue" = $actualValueList
         }
-        "modifyAttendantInboundProfiles" = @{
+        "modifyAttendantInboundProfiles"            = @{
           "actualValue" = $actualValueList
         }
-        "modifyAttendantOperatorProfiles" = @{
+        "modifyAttendantOperatorProfiles"           = @{
           "actualValue" = $actualValueList
         }
-        "modifyAttendantOutboundProfiles" = @{
+        "modifyAttendantOutboundProfiles"           = @{
           "actualValue" = $actualValueList
         }
-        "modifyCampaignList" = @{
+        "modifyCampaignList"                        = @{
           "actualValue" = $actualValueList
         }
-        "modifyFeedbackSurveys" = @{
+        "modifyFeedbackSurveys"                     = @{
           "actualValue" = $actualValueList
         }
-        "modifyOptimizerForecasts" = @{
+        "modifyOptimizerForecasts"                  = @{
           "actualValue" = $actualValueList
         }
-        "modifyRecorderQuestionnaires" = @{
+        "modifyRecorderQuestionnaires"              = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitAgentConstraints" = @{
+        "modifySchedulingUnitAgentConstraints"      = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitAgentGroups" = @{
+        "modifySchedulingUnitAgentGroups"           = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitConfiguration" = @{
+        "modifySchedulingUnitConfiguration"         = @{
           "actualValue" = $actualValueList
         }
         "modifySchedulingUnitListRealTimeAdherence" = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitSchedules" = @{
+        "modifySchedulingUnitSchedules"             = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitShiftRotations" = @{
+        "modifySchedulingUnitShiftRotations"        = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitShifts" = @{
+        "modifySchedulingUnitShifts"                = @{
           "actualValue" = $actualValueList
         }
-        "modifySchedulingUnitTimeoffRequests" = @{
+        "modifySchedulingUnitTimeoffRequests"       = @{
           "actualValue" = $actualValueList
         }
-        "muteStationQueue" = @{
+        "muteStationQueue"                          = @{
           "actualValue" = $actualValueList
         }
-        "muteUserQueue" = @{
+        "muteUserQueue"                             = @{
           "actualValue" = $actualValueList
         }
-        "phoneNumberClassifications" = @{
+        "phoneNumberClassifications"                = @{
           "actualValue" = $actualValueList
         }
-        "pickupLineQueue" = @{
+        "pickupLineQueue"                           = @{
           "actualValue" = $actualValueList
         }
-        "pickupStationQueue" = @{
+        "pickupStationQueue"                        = @{
           "actualValue" = $actualValueList
         }
-        "pickupUserQueue" = @{
+        "pickupUserQueue"                           = @{
           "actualValue" = $actualValueList
         }
-        "pickupWorkgroupQueue" = @{
+        "pickupWorkgroupQueue"                      = @{
           "actualValue" = $actualValueList
         }
-        "previewEmailUserQueue" = @{
+        "previewEmailUserQueue"                     = @{
           "actualValue" = $actualValueList
         }
-        "previewEmailWorkgroupQueue" = @{
+        "previewEmailWorkgroupQueue"                = @{
           "actualValue" = $actualValueList
         }
-        "recordLineQueue" = @{
+        "recordLineQueue"                           = @{
           "actualValue" = $actualValueList
         }
-        "recordStationQueue" = @{
+        "recordStationQueue"                        = @{
           "actualValue" = $actualValueList
         }
-        "recordUserQueue" = @{
+        "recordUserQueue"                           = @{
           "actualValue" = $actualValueList
         }
-        "recordWorkgroupQueue" = @{
+        "recordWorkgroupQueue"                      = @{
           "actualValue" = $actualValueList
         }
-        "responseManagementDocuments" = @{
+        "responseManagementDocuments"               = @{
           "actualValue" = $actualValueList
         }
-        "statusMessages" = @{
+        "statusMessages"                            = @{
           "actualValue" = $actualValueList
         }
-        "substituteQueueControlColumns" = @{
+        "substituteQueueControlColumns"             = @{
           "actualValue" = $actualValueList
         }
-        "transferLineQueue" = @{
+        "transferLineQueue"                         = @{
           "actualValue" = $actualValueList
         }
-        "transferStationQueue" = @{
+        "transferStationQueue"                      = @{
           "actualValue" = $actualValueList
         }
-        "transferUserQueue" = @{
+        "transferUserQueue"                         = @{
           "actualValue" = $actualValueList
         }
-        "transferWorkgroupQueue" = @{
+        "transferWorkgroupQueue"                    = @{
           "actualValue" = $actualValueList
         }
-        "tuiPhoneNumberClassifications" = @{
+        "tuiPhoneNumberClassifications"             = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantEmailProfileInSearch" = @{
+        "viewAttendantEmailProfileInSearch"         = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantEmailProfiles" = @{
+        "viewAttendantEmailProfiles"                = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantInboundProfileInSearch" = @{
+        "viewAttendantInboundProfileInSearch"       = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantInboundProfiles" = @{
+        "viewAttendantInboundProfiles"              = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantOperatorProfileInSearch" = @{
+        "viewAttendantOperatorProfileInSearch"      = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantOperatorProfiles" = @{
+        "viewAttendantOperatorProfiles"             = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantOutboundProfileInSearch" = @{
+        "viewAttendantOutboundProfileInSearch"      = @{
           "actualValue" = $actualValueList
         }
-        "viewAttendantOutboundProfiles" = @{
+        "viewAttendantOutboundProfiles"             = @{
           "actualValue" = $actualValueList
         }
-        "viewCampaignList" = @{
+        "viewCampaignList"                          = @{
           "actualValue" = $actualValueList
         }
-        "viewDataSource" = @{
+        "viewDataSource"                            = @{
           "actualValue" = $actualValueList
         }
-        "viewFeedbackSurveys" = @{
+        "viewFeedbackSurveys"                       = @{
           "actualValue" = $actualValueList
         }
-        "viewGeneralDirectories" = @{
+        "viewGeneralDirectories"                    = @{
           "actualValue" = $actualValueList
         }
-        "viewHistoricalReports" = @{
+        "viewHistoricalReports"                     = @{
           "actualValue" = $actualValueList
         }
-        "viewIndividualStatistics" = @{
+        "viewIndividualStatistics"                  = @{
           "actualValue" = $actualValueList
         }
-        "viewLayoutList" = @{
+        "viewLayoutList"                            = @{
           "actualValue" = $actualValueList
         }
-        "viewLineQueue" = @{
+        "viewLineQueue"                             = @{
           "actualValue" = $actualValueList
         }
-        "viewModifyOptimizerAll" = @{
+        "viewModifyOptimizerAll"                    = @{
           "actualValue" = $actualValueList
         }
-        "viewOptimizerForecasts" = @{
+        "viewOptimizerForecasts"                    = @{
           "actualValue" = $actualValueList
         }
-        "viewOptimizerSchedulingUnits" = @{
+        "viewOptimizerSchedulingUnits"              = @{
           "actualValue" = $actualValueList
         }
-        "viewPositionsList" = @{
+        "viewPositionsList"                         = @{
           "actualValue" = $actualValueList
         }
-        "viewProcessList" = @{
+        "viewProcessList"                           = @{
           "actualValue" = $actualValueList
         }
-        "viewQueueControlColumns" = @{
+        "viewQueueControlColumns"                   = @{
           "actualValue" = $actualValueList
         }
-        "viewRecorderQuestionnaires" = @{
+        "viewRecorderQuestionnaires"                = @{
           "actualValue" = $actualValueList
         }
-        "viewReport" = @{
+        "viewReport"                                = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitAgentConstraints" = @{
+        "viewSchedulingUnitAgentConstraints"        = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitAgentGroups" = @{
+        "viewSchedulingUnitAgentGroups"             = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitConfiguration" = @{
+        "viewSchedulingUnitConfiguration"           = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitIntradayMonitoring" = @{
+        "viewSchedulingUnitIntradayMonitoring"      = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitListRealTimeAdherence" = @{
+        "viewSchedulingUnitListRealTimeAdherence"   = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitSchedulePreferences" = @{
+        "viewSchedulingUnitSchedulePreferences"     = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitSchedules" = @{
+        "viewSchedulingUnitSchedules"               = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitShiftRotations" = @{
+        "viewSchedulingUnitShiftRotations"          = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitShifts" = @{
+        "viewSchedulingUnitShifts"                  = @{
           "actualValue" = $actualValueList
         }
-        "viewSchedulingUnitTimeoffRequests" = @{
+        "viewSchedulingUnitTimeoffRequests"         = @{
           "actualValue" = $actualValueList
         }
-        "viewSkillList" = @{
+        "viewSkillList"                             = @{
           "actualValue" = $actualValueList
         }
-        "viewStationGroups" = @{
+        "viewStationGroups"                         = @{
           "actualValue" = $actualValueList
         }
-        "viewStationGroupsInSearch" = @{
+        "viewStationGroupsInSearch"                 = @{
           "actualValue" = $actualValueList
         }
-        "viewStationQueue" = @{
+        "viewStationQueue"                          = @{
           "actualValue" = $actualValueList
         }
-        "viewStationQueueInSearch" = @{
+        "viewStationQueueInSearch"                  = @{
           "actualValue" = $actualValueList
         }
-        "viewStatusColumns" = @{
+        "viewStatusColumns"                         = @{
           "actualValue" = $actualValueList
         }
-        "viewUserInteractionHistory" = @{
+        "viewUserInteractionHistory"                = @{
           "actualValue" = $actualValueList
         }
-        "viewUserQueue" = @{
+        "viewUserQueue"                             = @{
           "actualValue" = $actualValueList
         }
-        "viewWorkgroup" = @{
+        "viewWorkgroup"                             = @{
           "actualValue" = $actualValueList
         }
-        "viewWorkgroupQueue" = @{
+        "viewWorkgroupQueue"                        = @{
           "actualValue" = $actualValueList
         }
-        "viewWorkgroupQueueInSearch" = @{
+        "viewWorkgroupQueueInSearch"                = @{
           "actualValue" = $actualValueList
         }
-        "viewWorkgroupStatistics" = @{
+        "viewWorkgroupStatistics"                   = @{
           "actualValue" = $actualValueList
         }
       }
@@ -1063,312 +1070,312 @@ function New-ICUser() # {{{2
   #########################
   if (![string]::IsNullOrEmpty($AdministrativeRights)) {
     $actualValue = @{
-      "grouping" = "0"
+      "grouping"   = "0"
       "objectType" = "0"
     }
     $actualValueList = @($actualValue) # This needs to be a list
 
     $body += @{
       "administrativeRights" = @{
-        "accountCodeList" = @{
+        "accountCodeList"                           = @{
           "actualValue" = $actualValueList
         }
-        "accumulatorList" = @{
-        "actualValue" = $actualValueList
+        "accumulatorList"                           = @{
+          "actualValue" = $actualValueList
         }
-        "actions" = @{
-        "actualValue" = $actualValueList
+        "actions"                                   = @{
+          "actualValue" = $actualValueList
         }
-        "attendantDefaults" = @{
-        "actualValue" = $true
+        "attendantDefaults"                         = @{
+          "actualValue" = $true
         }
-        "audioSources" = @{
-        "actualValue" = $actualValueList
+        "audioSources"                              = @{
+          "actualValue" = $actualValueList
         }
-        "canEditAdministrativeRights" = @{
-        "actualValue" = $true
+        "canEditAdministrativeRights"               = @{
+          "actualValue" = $true
         }
-        "canPublishClientTemplates" = @{
-        "actualValue" = $true
+        "canPublishClientTemplates"                 = @{
+          "actualValue" = $true
         }
-        "clientButtons" = @{
-        "actualValue" = $actualValueList
+        "clientButtons"                             = @{
+          "actualValue" = $actualValueList
         }
-        "clientConfigurationConfiguration" = @{
-        "actualValue" = $true
+        "clientConfigurationConfiguration"          = @{
+          "actualValue" = $true
         }
-        "clientConfigurationTemplates" = @{
-        "actualValue" = $actualValueList
+        "clientConfigurationTemplates"              = @{
+          "actualValue" = $actualValueList
         }
-        "collective" = @{
-        "actualValue" = $true
+        "collective"                                = @{
+          "actualValue" = $true
         }
-        "contactListSources" = @{
-        "actualValue" = $actualValueList
+        "contactListSources"                        = @{
+          "actualValue" = $actualValueList
         }
-        "dataManagerConfiguration" = @{
-        "actualValue" = $true
+        "dataManagerConfiguration"                  = @{
+          "actualValue" = $true
         }
-        "defaultIPPhoneConfiguration" = @{
-        "actualValue" = $true
+        "defaultIPPhoneConfiguration"               = @{
+          "actualValue" = $true
         }
-        "defaultLocationConfiguration" = @{
-        "actualValue" = $true
+        "defaultLocationConfiguration"              = @{
+          "actualValue" = $true
         }
-        "defaultStationConfiguration" = @{
-        "actualValue" = $true
+        "defaultStationConfiguration"               = @{
+          "actualValue" = $true
         }
-        "defaultUserConfiguration" = @{
-        "actualValue" = $true
+        "defaultUserConfiguration"                  = @{
+          "actualValue" = $true
         }
-        "dnisMappingsConfiguration" = @{
-        "actualValue" = $true
+        "dnisMappingsConfiguration"                 = @{
+          "actualValue" = $true
         }
-        "eFaq" = @{
-        "actualValue" = $actualValueList
+        "eFaq"                                      = @{
+          "actualValue" = $actualValueList
         }
-        "faxConfiguration" = @{
-        "actualValue" = $true
+        "faxConfiguration"                          = @{
+          "actualValue" = $true
         }
-        "faxGroups" = @{
-        "actualValue" = $actualValueList
+        "faxGroups"                                 = @{
+          "actualValue" = $actualValueList
         }
-        "handlers" = @{
-        "actualValue" = $actualValueList
+        "handlers"                                  = @{
+          "actualValue" = $actualValueList
         }
-        "iCDataSources" = @{
-        "actualValue" = $actualValueList
+        "iCDataSources"                             = @{
+          "actualValue" = $actualValueList
         }
-        "imageResources" = @{
-        "actualValue" = $actualValueList
+        "imageResources"                            = @{
+          "actualValue" = $actualValueList
         }
-        "initializationFunctions" = @{
-        "actualValue" = $actualValueList
+        "initializationFunctions"                   = @{
+          "actualValue" = $actualValueList
         }
-        "interactionAnalyzerKeywordSets" = @{
-        "actualValue" = $actualValueList
+        "interactionAnalyzerKeywordSets"            = @{
+          "actualValue" = $actualValueList
         }
-        "interactionConferenceConfiguration" = @{
-        "actualValue" = $true
+        "interactionConferenceConfiguration"        = @{
+          "actualValue" = $true
         }
-        "interactionConferenceRooms" = @{
-        "actualValue" = $actualValueList
+        "interactionConferenceRooms"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerCallLists" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerCallLists"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerCampaigns" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerCampaigns"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerConfiguration" = @{
-        "actualValue" = $true
+        "interactionDialerConfiguration"            = @{
+          "actualValue" = $true
         }
-        "interactionDialerPolicySets" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerPolicySets"               = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerRuleSets" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerRuleSets"                 = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerSchedules" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerSchedules"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerScripts" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerScripts"                  = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerSkillSets" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerSkillSets"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerStageSets" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerStageSets"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionDialerZoneSets" = @{
-        "actualValue" = $actualValueList
+        "interactionDialerZoneSets"                 = @{
+          "actualValue" = $actualValueList
         }
-        "interactionFeedbackConfiguration" = @{
-        "actualValue" = $true
+        "interactionFeedbackConfiguration"          = @{
+          "actualValue" = $true
         }
         "interactionOptimizerAdvancedConfiguration" = @{
-        "actualValue" = $true
+          "actualValue" = $true
         }
-        "interactionOptimizerAgentsConfiguration" = @{
-        "actualValue" = $true
+        "interactionOptimizerAgentsConfiguration"   = @{
+          "actualValue" = $true
         }
-        "interactionProcessAutomation" = @{
-        "actualValue" = $true
+        "interactionProcessAutomation"              = @{
+          "actualValue" = $true
         }
-        "interactionProcessorTables" = @{
-        "actualValue" = $actualValueList
+        "interactionProcessorTables"                = @{
+          "actualValue" = $actualValueList
         }
-        "interactionRecorderConfiguration" = @{
-        "actualValue" = $true
+        "interactionRecorderConfiguration"          = @{
+          "actualValue" = $true
         }
-        "interactionTrackerConfiguration" = @{
-        "actualValue" = $true
+        "interactionTrackerConfiguration"           = @{
+          "actualValue" = $true
         }
-        "iPPhoneRegistrationGroups" = @{
-        "actualValue" = $actualValueList
+        "iPPhoneRegistrationGroups"                 = @{
+          "actualValue" = $actualValueList
         }
-        "iPPhoneRingSets" = @{
-        "actualValue" = $actualValueList
+        "iPPhoneRingSets"                           = @{
+          "actualValue" = $actualValueList
         }
-        "iPPhones" = @{
-        "actualValue" = $actualValueList
+        "iPPhones"                                  = @{
+          "actualValue" = $actualValueList
         }
-        "iPPhoneTemplates" = @{
-        "actualValue" = $actualValueList
+        "iPPhoneTemplates"                          = @{
+          "actualValue" = $actualValueList
         }
-        "layouts" = @{
-        "actualValue" = $actualValueList
+        "layouts"                                   = @{
+          "actualValue" = $actualValueList
         }
-        "licensesAllocationConfiguration" = @{
-        "actualValue" = $true
+        "licensesAllocationConfiguration"           = @{
+          "actualValue" = $true
         }
-        "lineGroups" = @{
-        "actualValue" = $actualValueList
+        "lineGroups"                                = @{
+          "actualValue" = $actualValueList
         }
-        "lines" = @{
-        "actualValue" = $actualValueList
+        "lines"                                     = @{
+          "actualValue" = $actualValueList
         }
-        "locations" = @{
-        "actualValue" = $actualValueList
+        "locations"                                 = @{
+          "actualValue" = $actualValueList
         }
-        "logRetrievalAssistantConfiguration" = @{
-        "actualValue" = $true
+        "logRetrievalAssistantConfiguration"        = @{
+          "actualValue" = $true
         }
-        "mailConfiguration" = @{
-        "actualValue" = $true
+        "mailConfiguration"                         = @{
+          "actualValue" = $true
         }
-        "masterAdministrator" = @{
-        "actualValue" = $true
+        "masterAdministrator"                       = @{
+          "actualValue" = $true
         }
-        "mediaServersConfiguration" = @{
-        "actualValue" = $true
+        "mediaServersConfiguration"                 = @{
+          "actualValue" = $true
         }
-        "mrcpConfiguration" = @{
-        "actualValue" = $true
+        "mrcpConfiguration"                         = @{
+          "actualValue" = $true
         }
-        "passwordPolicies" = @{
-        "actualValue" = $actualValueList
+        "passwordPolicies"                          = @{
+          "actualValue" = $actualValueList
         }
-        "passwordPoliciesConfiguration" = @{
-        "actualValue" = $true
+        "passwordPoliciesConfiguration"             = @{
+          "actualValue" = $true
         }
-        "peerSitesConfiguration" = @{
-        "actualValue" = $true
+        "peerSitesConfiguration"                    = @{
+          "actualValue" = $true
         }
-        "phoneNumbersConfiguration" = @{
-        "actualValue" = $true
+        "phoneNumbersConfiguration"                 = @{
+          "actualValue" = $true
         }
-        "positions" = @{
-        "actualValue" = $actualValueList
+        "positions"                                 = @{
+          "actualValue" = $actualValueList
         }
-        "problemReporterConfiguration" = @{
-        "actualValue" = $true
+        "problemReporterConfiguration"              = @{
+          "actualValue" = $true
         }
-        "queueControlColumns" = @{
-        "actualValue" = $actualValueList
+        "queueControlColumns"                       = @{
+          "actualValue" = $actualValueList
         }
-        "reportLogs" = @{
-        "actualValue" = $actualValueList
+        "reportLogs"                                = @{
+          "actualValue" = $actualValueList
         }
-        "reports" = @{
-        "actualValue" = $actualValueList
+        "reports"                                   = @{
+          "actualValue" = $actualValueList
         }
-        "responseManagement" = @{
-        "actualValue" = $actualValueList
+        "responseManagement"                        = @{
+          "actualValue" = $actualValueList
         }
-        "roles" = @{
-        "actualValue" = $actualValueList
+        "roles"                                     = @{
+          "actualValue" = $actualValueList
         }
-        "salesforceCtis" = @{
-        "actualValue" = $actualValueList
+        "salesforceCtis"                            = @{
+          "actualValue" = $actualValueList
         }
-        "sametimeConfiguration" = @{
-        "actualValue" = $true
+        "sametimeConfiguration"                     = @{
+          "actualValue" = $true
         }
-        "schedules" = @{
-        "actualValue" = $actualValueList
+        "schedules"                                 = @{
+          "actualValue" = $actualValueList
         }
-        "secureInputForms" = @{
-        "actualValue" = $actualValueList
+        "secureInputForms"                          = @{
+          "actualValue" = $actualValueList
         }
-        "selectionRuleList" = @{
-        "actualValue" = $actualValueList
+        "selectionRuleList"                         = @{
+          "actualValue" = $actualValueList
         }
-        "serverParameter" = @{
-        "actualValue" = $actualValueList
+        "serverParameter"                           = @{
+          "actualValue" = $actualValueList
         }
-        "serversConfiguration" = @{
-        "actualValue" = $true
+        "serversConfiguration"                      = @{
+          "actualValue" = $true
         }
-        "sessionManagerServerConfiguration" = @{
-        "actualValue" = $true
+        "sessionManagerServerConfiguration"         = @{
+          "actualValue" = $true
         }
-        "singleSignOnIdentityProviders" = @{
-        "actualValue" = $actualValueList
+        "singleSignOnIdentityProviders"             = @{
+          "actualValue" = $actualValueList
         }
-        "singleSignOnSecureTokenServer" = @{
-        "actualValue" = $true
+        "singleSignOnSecureTokenServer"             = @{
+          "actualValue" = $true
         }
-        "sipBridge" = @{
-        "actualValue" = $actualValueList
+        "sipBridge"                                 = @{
+          "actualValue" = $actualValueList
         }
-        "sipProxyConfiguration" = @{
-        "actualValue" = $true
+        "sipProxyConfiguration"                     = @{
+          "actualValue" = $true
         }
-        "skillCategories" = @{
-        "actualValue" = $actualValueList
+        "skillCategories"                           = @{
+          "actualValue" = $actualValueList
         }
-        "skills" = @{
-        "actualValue" = $actualValueList
+        "skills"                                    = @{
+          "actualValue" = $actualValueList
         }
-        "smsBroker" = @{
-        "actualValue" = $actualValueList
+        "smsBroker"                                 = @{
+          "actualValue" = $actualValueList
         }
-        "smsConfiguration" = @{
-        "actualValue" = $true
+        "smsConfiguration"                          = @{
+          "actualValue" = $true
         }
-        "speechRecognitionConfiguration" = @{
-        "actualValue" = $true
+        "speechRecognitionConfiguration"            = @{
+          "actualValue" = $true
         }
-        "stationGroups" = @{
-        "actualValue" = $actualValueList
+        "stationGroups"                             = @{
+          "actualValue" = $actualValueList
         }
-        "stations" = @{
-        "actualValue" = $actualValueList
+        "stations"                                  = @{
+          "actualValue" = $actualValueList
         }
-        "stationTemplates" = @{
-        "actualValue" = $actualValueList
+        "stationTemplates"                          = @{
+          "actualValue" = $actualValueList
         }
-        "statisticGroups" = @{
-        "actualValue" = $actualValueList
+        "statisticGroups"                           = @{
+          "actualValue" = $actualValueList
         }
-        "statusMessages" = @{
-        "actualValue" = $actualValueList
+        "statusMessages"                            = @{
+          "actualValue" = $actualValueList
         }
-        "structuredParameters" = @{
-        "actualValue" = $actualValueList
+        "structuredParameters"                      = @{
+          "actualValue" = $actualValueList
         }
-        "systemConfiguration" = @{
-        "actualValue" = $true
+        "systemConfiguration"                       = @{
+          "actualValue" = $true
         }
-        "systemParameters" = @{
-        "actualValue" = $actualValueList
+        "systemParameters"                          = @{
+          "actualValue" = $actualValueList
         }
-        "users" = @{
-        "actualValue" = $actualValueList
+        "users"                                     = @{
+          "actualValue" = $actualValueList
         }
-        "webServicesParameters" = @{
-        "actualValue" = $actualValueList
+        "webServicesParameters"                     = @{
+          "actualValue" = $actualValueList
         }
-        "workgroups" = @{
-        "actualValue" = $actualValueList
+        "workgroups"                                = @{
+          "actualValue" = $actualValueList
         }
-        "wrapUpCategories" = @{
-        "actualValue" = $actualValueList
+        "wrapUpCategories"                          = @{
+          "actualValue" = $actualValueList
         }
-        "wrapUpCodes" = @{
-        "actualValue" = $actualValueList
+        "wrapUpCodes"                               = @{
+          "actualValue" = $actualValueList
         }
       }
     }
@@ -1378,6 +1385,6 @@ function New-ICUser() # {{{2
 
   # Call it!
   $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/users" -Body $body -Method Post -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
-  Write-Output $response | Format-Table
-  [PSCustomObject] $response
-} # }}}2
+  Write-Verbose $response
+  Return $response
+} #
