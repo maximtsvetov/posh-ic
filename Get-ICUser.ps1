@@ -1,11 +1,9 @@
 <#
-# AUTHOR : Pierrick Lozach
+# AUTHOR : Pierrick Lozach, Extended by Paul McGurn
 #>
 
-function Get-ICUser() # {{{2
-{
-# Documentation {{{3
-<#
+function Get-ICUser() {
+  <#
 .SYNOPSIS
   Gets a user
 .DESCRIPTION
@@ -16,16 +14,15 @@ function Get-ICUser() # {{{2
   The Interaction Center User
 .PARAMETER Fields
   The user fields to include with the returned user object, ex. extension, ntDomainUser, etc.  Comma-separated list of case-sensitive fields.
-#> # }}}3
+#>
   [CmdletBinding()]
   Param(
-    [Parameter(Mandatory=$true)]  [Alias("Session", "Id")] [ININ.ICSession] $ICSession,
-    [Parameter(Mandatory=$true)] [Alias("User")] [string] $ICUser,
-    [Parameter(Mandatory=$false)] [string]$fields
+    [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession,
+    [Parameter(Mandatory = $true)] [Alias("User")] [string] $ICUser,
+    [Parameter(Mandatory = $false)] [string]$fields
   )
 
-  if (! $PSBoundParameters.ContainsKey('ICUser'))
-  {
+  if (! $PSBoundParameters.ContainsKey('ICUser')) {
     $ICUser = $ICSession.user
   }
 
@@ -35,22 +32,17 @@ function Get-ICUser() # {{{2
   }
 
   $response = '';
-  $requesturi = "$($ICsession.baseURL)/$($ICSession.id)/configuration/users/$ICUser"
-  
-  #if additional fields were requested, add to requesturi
-  if($fields){    
-    $requesturi += "?select=$fields"
-  }
+  $requesturi = "$($ICsession.baseURL)/$($ICSession.id)/configuration/users/${ICUser}?select=*"
 
   try {
-      $response = Invoke-RestMethod -Uri $requesturi -Method Get -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
+    $response = Invoke-RestMethod -Uri $requesturi -Method Get -Headers $headers -WebSession $ICSession.webSession
   }
-  catch [System.Net.WebException] {
+  catch {
     # If user not found, ignore the exception
     if (-not ($_.Exception.message -match '404')) {
-        Write-Error $_
+      Write-Verbose "User not found, exiting silently"
     }
   }
-  [PSCustomObject] $response
-} # }}}2
+  return $response
+}
 
