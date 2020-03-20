@@ -2,10 +2,9 @@
 # AUTHOR : Paul McGurn, based on Pierrick Lozach's original work
 #>
 
-function Get-ICUserByNtUserId() 
-{
-# Documentation 
-<#
+function Get-ICUserByNtUserId() {
+  # Documentation 
+  <#
 .SYNOPSIS
   Gets an IC User by lookup of their NT user ID
 .DESCRIPTION
@@ -17,8 +16,8 @@ function Get-ICUserByNtUserId()
 #> 
   [CmdletBinding()]
   Param(
-    [Parameter(Mandatory=$true)]  [Alias("Session", "Id")] [ININ.ICSession] $ICSession,
-    [Parameter(Mandatory=$true)]  [Alias("NtUserId", "User")] [String] $ICNtUserId
+    [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession,
+    [Parameter(Mandatory = $true)]  [Alias("NtUserId", "User")] [String] $ICNtUserId
 
   )
 
@@ -27,9 +26,11 @@ function Get-ICUserByNtUserId()
     "ININ-ICWS-CSRF-Token" = $ICSession.token;
   }
 
-  $uri = $ICsession.baseURL + '/' + $ICSession.id + '/configuration/users?where='
+  $requesturi = [String] $ICsession.baseURL + '/' + $ICSession.id + '/configuration/users?where='
   $whereclause = 'ntDomainUser eq ' + [System.Web.HttpUtility]::UrlEncode($ICNtUserId)
-  $encodeduri = $uri + $whereclause
+  $encodeduri = $requesturi + $whereclause
+
+  Write-Verbose "URI: ${encodeduri}"
 
   $response = Invoke-RestMethod -Uri $encodeduri -Method Get -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
 
