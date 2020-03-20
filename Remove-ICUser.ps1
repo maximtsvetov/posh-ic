@@ -1,11 +1,9 @@
 <#
-# AUTHOR : Pierrick Lozach
+# AUTHOR : Pierrick Lozach, extended by Paul McGurn
 #>
 
-function Remove-ICUser() # {{{2
-{
-# Documentation {{{3
-<#
+function Remove-ICUser() {
+  <#
 .SYNOPSIS
   Removes a user
 .DESCRIPTION
@@ -14,18 +12,19 @@ function Remove-ICUser() # {{{2
   The Interaction Center Session
 .PARAMETER ICUser
   The Interaction Center User
-#> # }}}3
+#>
   [CmdletBinding()]
   Param(
-    [Parameter(Mandatory=$true)]  [Alias("Session", "Id")] [ININ.ICSession] $ICSession,
-    [Parameter(Mandatory=$true)] [Alias("User")] [string] $ICUser
+    [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] [ININ.ICSession] $ICSession,
+    [Parameter(Mandatory = $true)] [Alias("User")] [string] $ICUser
   )
 
   # User exists?
-  $userExists = Get-ICUser $ICSession -ICUser $ICUser
+  $userExists = Get-ICUser $ICSession -ICUser "${ICUser}"
   if ([string]::IsNullOrEmpty($userExists)) {
     # User does not exist
-    return "User lookup failed for $ICUser , no action taken"
+    Write-Host "User ${ICUser} does not exist, no action taken"
+    return
   }
 
   $headers = @{
@@ -33,7 +32,7 @@ function Remove-ICUser() # {{{2
     "ININ-ICWS-CSRF-Token" = $ICSession.token;
   }
 
-  $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/users/$ICUser" -Method Delete -Headers $headers -WebSession $ICSession.webSession #-ErrorAction Stop
-  [PSCustomObject] $response
-} # }}}2
+  $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/users/$ICUser" -Method Delete -Headers $headers -WebSession $ICSession.webSession
+  return $response
+}
 

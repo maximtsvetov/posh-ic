@@ -1,4 +1,4 @@
-﻿#TODO: Need to gracefully map mailbox user info so it shows first/lastnames in vairous ICBM reports
+﻿#TODO: Need to gracefully map mailbox user info so it shows first/last names in various ICBM reports
 
 <#
 # AUTHOR : Pierrick Lozach, extended by Paul McGurn
@@ -51,7 +51,7 @@ function New-ICUser() {
   Param(
     [Parameter(Mandatory = $true)] [Alias("Session", "Id")] $ICSession,
     [Parameter(Mandatory = $true)] [Alias("User")] [string] $ICUser,
-    [Parameter(Mandatory = $false)] [string] $Password,
+    [Parameter(Mandatory = $false)] [string] [Alias("Password")] [string] $pwd,
     [Parameter(Mandatory = $false)] [string] $Extension,
     [Parameter(Mandatory = $false)] [Alias("ClientAccess")] [boolean] $HasClientAccess,
     [Parameter(Mandatory = $false)] [Alias("EnableLicenses", "ActivateLicenses")] [boolean] $LicenseActive,
@@ -77,7 +77,7 @@ function New-ICUser() {
 
   # Validate Parameters
   if (!$PSBoundParameters.ContainsKey('Password')) {
-    $Password = '11223344'
+    $pwd = '11223344'
   }
 
   if (!$PSBoundParameters.ContainsKey('HasClientAccess')) {
