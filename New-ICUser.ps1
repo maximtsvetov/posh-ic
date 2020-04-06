@@ -67,7 +67,9 @@ function New-ICUser() {
     [Parameter(Mandatory = $false)] [string] $SecurityRights,
     [Parameter(Mandatory = $false)] [string] $AccessRights,
     [Parameter(Mandatory = $false)] [string] $AdministrativeRights,
-    [Parameter(Mandatory = $false)] [string] $EmailAddress
+    [Parameter(Mandatory = $false)] [string] $EmailAddress,
+    [Parameter(Mandatory = $false)] [string] $EmailDomain
+
   )
 
   $userExists = Get-ICUser $ICSession -ICUser $ICUser
@@ -150,17 +152,24 @@ function New-ICUser() {
       "ntDomainUser" = $NTDomainUser
     }
   }
-  
+
   ##################
   # Mailbox #
   ##################
   if (![string]::IsNullOrEmpty($EmailAddress)) {
+    $mailboxinfo = @{ }
+    $mailboxinfo.emailAddress = $EmailAddress
+    
+    if (![string]::IsNullOrEmpty($Emaildomain)) {
+      $mailboxinfo.directoryMoniker = "ININ.Mail.ObjectMoniker:<x-inin-mail.ex.ews.directory:/d=${emailDomain}/e=${EmailAddress}>"
+      $mailboxinfo.mailboxMoniker = "ININ.Mail.ObjectMoniker:<x-inin-mail.ex.ews.store:/s=${EmailAddress}>" 
+      $mailboxinfo.type = 3
+    }
     $body += @{
-      "mailboxProperties" = @{
-        "emailAddress" = $EmailAddress
-      }
+      "mailboxProperties" = $mailboxinfo
     }
   }
+
 
   ######################
   # Preferred Language #
