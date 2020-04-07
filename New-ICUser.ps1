@@ -68,7 +68,8 @@ function New-ICUser() {
     [Parameter(Mandatory = $false)] [string] $AccessRights,
     [Parameter(Mandatory = $false)] [string] $AdministrativeRights,
     [Parameter(Mandatory = $false)] [string] $EmailAddress,
-    [Parameter(Mandatory = $false)] [string] $EmailDomain
+    [Parameter(Mandatory = $false)] [string] $EmailDomain,
+    [Parameter(Mandatory = $false)] [int] $HomeSite
 
   )
 
@@ -79,7 +80,7 @@ function New-ICUser() {
 
   # Validate Parameters
   if (!$PSBoundParameters.ContainsKey('Password')) {
-    $pwd = '11223344'
+    pwd$ = '11223344'
   }
 
   if (!$PSBoundParameters.ContainsKey('HasClientAccess')) {
@@ -170,6 +171,14 @@ function New-ICUser() {
     }
   }
 
+  ######################
+  # Home Site #
+  ######################
+  if (![string]::IsNullOrEmpty($HomeSite)) {
+    $body += @{
+      "homeSite" = $HomeSite
+    }
+  }
 
   ######################
   # Preferred Language #
