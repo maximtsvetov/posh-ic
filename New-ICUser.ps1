@@ -80,7 +80,7 @@ function New-ICUser() {
 
   # Validate Parameters
   if (!$PSBoundParameters.ContainsKey('Password')) {
-    pwd$ = '11223344'
+    $pwd = '11223344'
   }
 
   if (!$PSBoundParameters.ContainsKey('HasClientAccess')) {
