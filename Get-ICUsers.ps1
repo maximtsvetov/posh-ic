@@ -13,15 +13,35 @@ function Get-ICUsers() {
 #> # }}}3
   [CmdletBinding()]
   Param(
-    [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession
+    [Parameter(Mandatory = $true)]  [Alias("Session", "Id")] $ICSession,
+    [Parameter(Mandatory = $false)] [Alias("Fields", "Columns")] $Properties
   )
 
   $headers = @{
     "Accept-Language"      = $ICSession.language;
     "ININ-ICWS-CSRF-Token" = $ICSession.token;
   }
-  $response = Invoke-RestMethod -Uri "$($ICsession.baseURL)/$($ICSession.id)/configuration/users?select=*" -Method Get -Headers $headers -WebSession $ICSession.webSession -ErrorAction Stop
-  
-  return $response
+
+  #default URI to pull just base User objects for performance
+  $uri = "$($ICsession.baseURL)/$($ICSession.id)/configuration/users"
+
+  #we'll use the supplied properties (can be "*") to get detailed results, if the param was supplied
+  if (![String]::IsNullOrEmpty($properties)) {
+    $uri = "$($ICsession.baseURL)/$($ICSession.id)/configuration/users?select=${properties}"
+  }
+
+  $response = Invoke-RestMethod -Uri $uri `
+    -Method Get `
+    -Headers $headers `
+    -WebSession $ICSession.webSession `
+    -ResponseHeadersVariable responseheaders `
+    -ErrorAction Stop  
+
+  #TODO: Add Content-Range handling for result sets > 200 items
+  if (!([String]::IsNullOrEmpty($responseheaders.'Content-Range'))) {
+    Write-Verbose "NOTE: API indicated result set is largger than a single API call, results may be truncated"
+  }
+
+  return $response.items
 } 
 
