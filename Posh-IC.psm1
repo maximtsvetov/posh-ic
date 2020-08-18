@@ -40,6 +40,8 @@ Update-FormatData -AppendPath .\__display.formats.ps1xml
 . .\Get-ICRoles.ps1
 . .\Get-ICFeatureLicenses.ps1
 . .\Get-ICSchedules.ps1
+. .\New-ICSchedule.ps1
+. .\Get-ICSchedule.ps1
 
 Pop-Location
 
@@ -78,5 +80,7 @@ Export-ModuleMember `
   'Get-ICUserByNtUserId',
   'Get-ICRoles',
   'Get-ICFeatureLicenses',
-  'Get-ICSchedules'
+  'Get-ICSchedules',
+  'New-ICSchedule',
+  'Get-ICSchedule'
 )

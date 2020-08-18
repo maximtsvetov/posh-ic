@@ -105,7 +105,9 @@
     'Get-ICUserByNtUserId',
     'Get-ICRoles',
     'Get-ICFeatureLicenses',
-    'Get-ICSchedules'
+    'Get-ICSchedules',
+    'New-ICSchedule',
+    'Get-ICSchedule'
   )
 
   # Cmdlets to export from this module
