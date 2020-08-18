@@ -40,10 +40,6 @@ function New-ICSchedule()
   }
 
 
-$ICSchedule = "Paul Test"
-$isActive = $false
-$Description = "Paul Test"
-
   $configurationId = New-ICConfigurationId $ICSchedule
   #Add URI and Description to base configuration ID
   $configurationId.Add("displayName", $ICSchedule)
