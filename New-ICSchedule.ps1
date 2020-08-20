@@ -1,5 +1,5 @@
 ﻿<#
-# AUTHOR : Paul mcGurn
+# AUTHOR : Paul McGurn
 # TODO: Allow for more precision on date/time/recurrence settings
 #>
 
