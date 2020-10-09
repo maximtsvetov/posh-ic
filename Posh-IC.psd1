@@ -107,7 +107,8 @@
     'Get-ICFeatureLicenses',
     'Get-ICSchedules',
     'New-ICSchedule',
-    'Get-ICSchedule'
+    'Get-ICSchedule',
+    'Get-ICMediaServerStatus'
   )
 
   # Cmdlets to export from this module

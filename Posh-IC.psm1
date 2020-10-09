@@ -42,6 +42,7 @@ Update-FormatData -AppendPath .\__display.formats.ps1xml
 . .\Get-ICSchedules.ps1
 . .\New-ICSchedule.ps1
 . .\Get-ICSchedule.ps1
+. .\Get-ICMediaServerStatus.ps1
 
 Pop-Location
 
@@ -82,5 +83,6 @@ Export-ModuleMember `
   'Get-ICFeatureLicenses',
   'Get-ICSchedules',
   'New-ICSchedule',
-  'Get-ICSchedule'
+  'Get-ICSchedule',
+  'Get-ICMediaServerStatus'
 )
